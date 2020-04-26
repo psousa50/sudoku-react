@@ -1,11 +1,8 @@
 import React from "react"
-import * as SudokuSolver from "./sudoku-core/Solver"
-import { SudokuBoardView } from "./components/SudokuBoard"
+import { SudokuGameView } from "./components/SudokuGame"
 
 function App() {
-  const board = SudokuSolver.createBoard({ boxWidth: 3, boxHeight: 3 })
-
-  return <SudokuBoardView board={board} />
+  return <SudokuGameView />
 }
 
 export default App

@@ -1,5 +1,5 @@
 import React from "react"
-import { SudokuGameView } from "./components/SudokuGame"
+import { SudokuGameView } from "./components/SudokuGameView"
 
 function App() {
   return <SudokuGameView />

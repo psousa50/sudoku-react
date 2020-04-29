@@ -1,6 +1,6 @@
 import React from "react"
-import * as Sudoku from "../sudoku-core/Sudoku"
 import * as R from "ramda"
+import { Sudoku, SudokuModels } from "../sudoku-core"
 import { makeStyles } from "@material-ui/core/styles"
 
 const useStyles = makeStyles({
@@ -29,13 +29,13 @@ const useStyles = makeStyles({
 })
 
 interface SudokuBoardViewProps {
-  board: Sudoku.Board
-  startBoard: Sudoku.Board
+  board: SudokuModels.Board
+  startBoard: SudokuModels.Board
 }
 
 export const SudokuBoardView: React.FC<SudokuBoardViewProps> = ({ board, startBoard }) => {
 
-  const nc = Sudoku.numberCount(board)
+  const nc = SudokuModels.numberCount(board)
 
   const classes = useStyles({ boxWidth: 3 })
 
@@ -84,11 +84,11 @@ export const SudokuBoardView: React.FC<SudokuBoardViewProps> = ({ board, startBo
 }
 
 interface CellViewProps {
-  cell: Sudoku.Cell
+  cell: SudokuModels.Cell
 }
 const CellView: React.FC<CellViewProps> = ({ cell }) => {
   const classes = useStyles()
 
-  const cellString = cell === Sudoku.emptyCell ? " " : cell.toString()
+  const cellString = cell === SudokuModels.emptyCell ? " " : cell.toString()
   return <div className={classes.cell}>{cellString}</div>
 }

@@ -1,22 +1,22 @@
+import { SolverModels, Solver, Constraints } from "../sudoku-core"
 import React from "react"
 import * as R from "ramda"
 import { Sudoku, SudokuModels } from "../sudoku-core"
 import { makeStyles } from "@material-ui/core/styles"
 
 const useStyles = makeStyles({
-  container: {
-  },
-  table: {
+  container: {},
+  board: {
     border: "5pt solid black",
     borderCollapse: "collapse",
     flex: 1,
     borderSpacing: 0,
     padding: 0,
   },
-  tr: {
+  boardRow: {
     padding: 0,
   },
-  cell: {
+  boardCell: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -26,6 +26,14 @@ const useStyles = makeStyles({
     width: 48,
     height: 48,
   },
+  numbers: {
+    flex: 1,
+    borderSpacing: 0,
+    padding: 0,
+  },
+  numbersCell: {
+    fontSize: 8,
+  },
 })
 
 interface SudokuBoardViewProps {
@@ -34,12 +42,11 @@ interface SudokuBoardViewProps {
 }
 
 export const SudokuBoardView: React.FC<SudokuBoardViewProps> = ({ board, startBoard }) => {
-
   const nc = SudokuModels.numberCount(board)
 
   const classes = useStyles({ boxWidth: 3 })
 
-  const boxCellRightBorder = `& td:nth-child(${board.boxWidth}n)`
+  const boxCellRightBorder = `& td1:nth-child(${board.boxWidth}n)`
   const boxRowBottomBorder = `& tr:nth-child(${board.boxHeight}n)`
   const cellBorderStyles = makeStyles({
     cellBorder: {
@@ -47,32 +54,52 @@ export const SudokuBoardView: React.FC<SudokuBoardViewProps> = ({ board, startBo
       [boxCellRightBorder]: {
         borderRight: "3pt solid black",
       },
-    },  
+    },
     rowBorder: {
       padding: 0,
       [boxRowBottomBorder]: {
         borderBottom: "3pt solid black",
       },
     },
-    cell: {
-    },
+    cell: {},
     originalCell: {
-      backgroundColor: "lightgrey"
-    }
-  
+      backgroundColor: "lightgrey",
+    },
   })
   const cellClasses = cellBorderStyles()
 
+  const constrainedCells: SudokuModels.CellPos[] = [] // Constraints.build(board.constraints)(board)({row:4, col:5})
+  const solverState = Solver.startSolveBoard(startBoard)
 
   return (
     <div className={classes.container}>
-      <table className={classes.table}>
+      <table className={classes.board}>
         <tbody className={cellClasses.rowBorder}>
           {R.range(0, nc).map((row) => (
-            <tr key={row} className={`${classes.tr} ${cellClasses.cellBorder}`}>
+            <tr key={row} className={`${classes.boardRow} ${cellClasses.cellBorder}`}>
               {R.range(0, nc).map((col) => (
-                <td key={col} className={Sudoku.cellIsEmpty(startBoard)({row, col}) ? cellClasses.cell : cellClasses.originalCell}>
-                  <CellView cell={Sudoku.cell(board)({ row, col })} />
+                <td
+                  key={col}
+                  className={Sudoku.cellIsEmpty(startBoard)({ row, col }) ? cellClasses.cell : cellClasses.originalCell}
+                >
+                  <CellNumbersView
+                    boxWidth={board.boxWidth}
+                    boxHeight={board.boxHeight}
+                    numbers={
+                      Sudoku.cellIsEmpty(startBoard)({ row, col })
+                        ?  Solver.buildNumberListFromBitMask(solverState.nodes[0].availableNumbersMap[row][col])
+                        : []
+                    }
+                  />
+                  {false && (
+                    <CellView
+                      cell={Sudoku.cell(board)({ row, col })}
+                      cellPos={{ row, col }}
+                      backgroundColor={
+                        constrainedCells.find(SudokuModels.cellPosIsEqual({ row, col })) ? "green" : undefined
+                      }
+                    />
+                  )}
                 </td>
               ))}
             </tr>
@@ -85,10 +112,43 @@ export const SudokuBoardView: React.FC<SudokuBoardViewProps> = ({ board, startBo
 
 interface CellViewProps {
   cell: SudokuModels.Cell
+  cellPos: SudokuModels.CellPos
+  backgroundColor?: string
 }
-const CellView: React.FC<CellViewProps> = ({ cell }) => {
+const CellView: React.FC<CellViewProps> = ({ cell, backgroundColor }) => {
   const classes = useStyles()
 
-  const cellString = cell === SudokuModels.emptyCell ? " " : cell.toString()
-  return <div className={classes.cell}>{cellString}</div>
+  const cellString = cell === SudokuModels.emptyCell ? "" : cell.toString()
+  return (
+    <div style={{ backgroundColor }} className={classes.boardCell}>
+      {cellString}
+    </div>
+  )
+}
+
+interface CellNumbersViewProps {
+  boxWidth: number
+  boxHeight: number
+  numbers: number[]
+}
+const CellNumbersView: React.FC<CellNumbersViewProps> = ({ boxWidth, boxHeight, numbers }) => {
+  const classes = useStyles()
+
+  return (
+    <div className={classes.container}>
+      <table className={classes.numbers}>
+        <tbody>
+          {R.range(0, boxHeight).map((_, r) => (
+            <tr key={r}>
+              {R.range(0, boxWidth).map((_, c) => (
+                <td key={c} className={classes.numbersCell}>
+                  {numbers.find((n) => n === r * boxWidth + c) ? r * boxWidth + c : ""}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }

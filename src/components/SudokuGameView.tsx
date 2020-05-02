@@ -1,8 +1,9 @@
 import React from "react"
-import { Sudoku, SudokuModels, Solver, SolverModels, utils } from "../sudoku-core"
+import { Sudoku, SudokuModels, Solver, SolverModels, utils, Constraints } from "../sudoku-core"
 import { SudokuBoardView } from "./SudokuBoardView"
 import { Button } from "@material-ui/core"
 import { makeStyles } from "@material-ui/core/styles"
+import { magicSquareboard, big4x4 } from "../puzzles"
 
 const useStyles = makeStyles({
   container: {
@@ -33,12 +34,11 @@ export const SudokuGameView = () => {
   const [time, setTime] = React.useState(0)
 
   const startGame = () => {
-
-    // const puzzle = magicSquareboard
-    const board = Solver.createBoard({ boxWidth: 4, boxHeight: 4 }).board
-    const allCells = Sudoku.allCellsPos(board)
-    const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.5))
-    const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
+    const puzzle = big4x4
+    // const board = Solver.createBoard({ boxWidth: 3, boxHeight: 3 }).board
+    // const allCells = Sudoku.allCellsPos(board)
+    // const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.5))
+    // const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
 
     setBoard(puzzle)
     setStartBoard(puzzle)
@@ -62,7 +62,7 @@ export const SudokuGameView = () => {
       if (solverState && solverState.result === "unknown") {
         setSolverState((s) => (s ? Solver.nextStep(s) : s))
       }
-    }, 5)
+    }, 10)
     return () => clearTimeout(timer)
   })
   const solveByStep = () => {

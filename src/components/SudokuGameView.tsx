@@ -43,11 +43,11 @@ export const SudokuGameView = () => {
   })
 
   const startGame = () => {
-    // const puzzle = big4x4
-    const board = Solver.createBoard({ boxWidth: 4, boxHeight: 4 }).board
-    const allCells = Sudoku.allCellsPos(board)
-    const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.5))
-    const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
+    const puzzle = big4x4
+    // const board = Solver.createBoard({ boxWidth: 4, boxHeight: 4 }).board
+    // const allCells = Sudoku.allCellsPos(board)
+    // const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.5))
+    // const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
 
     setStartBoard(puzzle)
     setSolverState(Solver.startSolveBoard(puzzle))

@@ -1,8 +1,20 @@
-import { SolverModels, Solver, Constraints } from "../sudoku-core"
+import { AvailableNumbers, SolverModels, Solver, Constraints } from "../sudoku-core"
 import React from "react"
 import * as R from "ramda"
 import { Sudoku, SudokuModels } from "../sudoku-core"
 import { makeStyles } from "@material-ui/core/styles"
+
+const numbersColors = [
+  "#bbdefb",
+  "#a5d6a7",
+  "#64b5f6",
+  "#42a5f5",
+  "#2196f3",
+  "#1e88e5",
+  "#1976d2",
+  "#1565c0",
+  "#0d47a1",
+]
 
 const useStyles = makeStyles({
   container: {},
@@ -62,7 +74,8 @@ interface SudokuBoardViewProps {
 }
 
 export const SudokuBoardView: React.FC<SudokuBoardViewProps> = props => {
-  const { board } = props.solverState
+  const { startBoard, solverState } = props
+  const { board } = solverState
   const nc = SudokuModels.numberCount(board)
 
   const classes = useStyles()
@@ -74,7 +87,14 @@ export const SudokuBoardView: React.FC<SudokuBoardViewProps> = props => {
       {R.range(0, nc / board.boxHeight).map(row => (
         <div key={row} className={classes.boxRow}>
           {R.range(0, nc / board.boxWidth).map(col => (
-            <BoxView key={col} {...props} boxRow={row} boxCol={col} />
+            <BoxView
+              key={col}
+              startBoard={startBoard}
+              board={board}
+              boxRow={row}
+              boxCol={col}
+              availableNumbersMap={solverState.nodes[solverState.nodes.length - 1].availableNumbersMap}
+            />
           ))}
         </div>
       ))}
@@ -82,14 +102,15 @@ export const SudokuBoardView: React.FC<SudokuBoardViewProps> = props => {
   )
 }
 
-interface BoxViewProps extends SudokuBoardViewProps {
+interface BoxViewProps {
   boxRow: number
   boxCol: number
-  solverState: SolverModels.SolverState
+  startBoard: SudokuModels.Board
+  board: SudokuModels.Board
+  availableNumbersMap: AvailableNumbers.AvailableNumbersMap
 }
 
-const BoxView: React.FC<BoxViewProps> = ({ startBoard, boxRow, boxCol, solverState }) => {
-  const { board } = solverState
+const BoxView: React.FC<BoxViewProps> = ({ startBoard, board, boxRow, boxCol, availableNumbersMap }) => {
   const classes = useStyles()
 
   return (
@@ -104,9 +125,7 @@ const BoxView: React.FC<BoxViewProps> = ({ startBoard, boxRow, boxCol, solverSta
                 key={c}
                 boxWidth={board.boxWidth}
                 boxHeight={board.boxHeight}
-                numbers={Solver.buildNumberListFromBitMask(
-                  solverState.nodes[solverState.nodes.length - 1].availableNumbersMap[row][col],
-                )}
+                numbers={Solver.buildNumberListFromBitMask(availableNumbersMap[row][col])}
               />
             ) : (
               <CellView
@@ -151,11 +170,11 @@ const CellNumbersView: React.FC<CellNumbersViewProps> = ({ boxWidth, boxHeight, 
     cell: {
       width: 48 / boxWidth,
       height: 48 / boxHeight,
+      backgroundColor: numbersColors[Math.min(8, numbers.length)],
     },
   })
   const cellClasses = cellBorderStyles()
 
-  console.log("RENDER")
   return (
     <div className={classes.numbersBox}>
       {R.range(0, boxHeight).map((_, r) => (

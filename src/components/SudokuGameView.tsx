@@ -1,5 +1,5 @@
 import React from "react"
-import { Sudoku, SudokuModels, Solver, SolverModels, utils, Constraints } from "../sudoku-core"
+import { Sudoku, SudokuModels, Solver, SolverModels, utils, Constraints, helpers } from "../sudoku-core"
 import { SudokuBoardView } from "./SudokuBoardView"
 import { Button, Checkbox } from "@material-ui/core"
 import { makeStyles } from "@material-ui/core/styles"
@@ -35,7 +35,7 @@ export const SudokuGameView = () => {
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      if (continuous && solverState && solverState.result === "unknown") {
+      if (continuous && solverState && solverState.outcome === SolverModels.Outcomes.unknown) {
         setSolverState(s => (s ? Solver.nextStep(s) : s))
       }
     }, 10)
@@ -43,11 +43,11 @@ export const SudokuGameView = () => {
   })
 
   const startGame = () => {
-    const puzzle = big4x4
-    // const board = Solver.createBoard({ boxWidth: 4, boxHeight: 4 }).board
-    // const allCells = Sudoku.allCellsPos(board)
-    // const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.5))
-    // const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
+    // const puzzle = big4x4
+    const board = Solver.createBoard({ boxWidth: 4, boxHeight: 3 }).board
+    const allCells = Sudoku.allCellsPos(board)
+    const cellsToRemove = utils.shuffle(allCells).slice(0, Math.max(1, allCells.length * 0.6))
+    const puzzle = cellsToRemove.reduce((acc, cell) => Sudoku.clearCell(acc)(cell), board)
 
     setStartBoard(puzzle)
     setSolverState(Solver.startSolveBoard(puzzle))
@@ -72,6 +72,12 @@ export const SudokuGameView = () => {
     }
   }
 
+  const undoStep = () => {
+    if (solverState) {
+      setSolverState(Solver.undoStep(solverState))
+    }
+  }
+
   return (
     <div className={classes.container}>
       <h2>Sudoku</h2>
@@ -85,12 +91,15 @@ export const SudokuGameView = () => {
         <Button className={classes.button} variant="contained" color="secondary" onClick={nextStep}>
           {"NEXT STEP"}
         </Button>
+        <Button className={classes.button} variant="contained" color="secondary" onClick={undoStep}>
+          {"UNDO STEP"}
+        </Button>
         <Checkbox value={continuous} onChange={event => setContinuous(event.target.checked)} />
       </div>
       {startBoard && solverState ? (
         <SudokuBoardView startBoard={startBoard} solverState={solverState} />
       ) : null}
-      <div>{time}</div>
+      {solverState && <div>{time}</div>}
     </div>
   )
 }

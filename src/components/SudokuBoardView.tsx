@@ -4,17 +4,7 @@ import * as R from "ramda"
 import { Sudoku, SudokuModels } from "../sudoku-core"
 import { makeStyles } from "@material-ui/core/styles"
 
-const numbersColors = [
-  "#bbdefb",
-  "#a5d6a7",
-  "#64b5f6",
-  "#42a5f5",
-  "#2196f3",
-  "#1e88e5",
-  "#1976d2",
-  "#1565c0",
-  "#0d47a1",
-]
+const numbersColors = ["white", "#a5d6a7", "#f48fb1", "#42a5f5", "#2196f3", "#1e88e5", "#1976d2", "#1565c0", "#0d47a1"]
 
 const useStyles = makeStyles({
   container: {},
@@ -33,7 +23,8 @@ const useStyles = makeStyles({
     display: "flex",
     flex: 1,
     flexDirection: "column",
-    border: "1.5pt solid black",
+    border: "1pt solid black",
+    padding: 4,
   },
   boxRow: {
     display: "flex",
@@ -42,24 +33,23 @@ const useStyles = makeStyles({
   },
   cell: {
     display: "flex",
-    border: "1pt solid black",
+    borderLeft: "0.5pt solid black",
+    borderBottom: "0.5pt solid black",
     width: 48,
     height: 48,
     fontSize: 16,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "yellow",
   },
   numbersBox: {
     display: "flex",
     flex: 1,
     flexDirection: "column",
-    border: "1pt solid black",
+    borderLeft: "0.5pt solid black",
+    borderBottom: "0.5pt solid black",
     width: 48,
     height: 48,
     fontSize: 9,
-    padding: 0,
-    margin: 0,
   },
   numbersRow: {
     display: "flex",
@@ -120,19 +110,29 @@ const BoxView: React.FC<BoxViewProps> = ({ startBoard, board, boxRow, boxCol, av
           {R.range(0, board.boxWidth).map(c => {
             const row = boxRow * board.boxHeight + r
             const col = boxCol * board.boxWidth + c
+            const bordersStyle = {
+              borderTop: r === 0 ? "0.5pt solid black" : undefined,
+              borderRight: c === board.boxWidth - 1 ? "0.5pt solid black" : undefined,
+            }
+
+            const numbers = Solver.buildNumberListFromBitMask(availableNumbersMap[row][col])
             return Sudoku.cellIsEmpty(board)({ row, col }) ? (
               <CellNumbersView
                 key={c}
+                style={{ ...bordersStyle, backgroundColor: numbersColors[Math.min(8, numbers.length)] }}
                 boxWidth={board.boxWidth}
                 boxHeight={board.boxHeight}
-                numbers={Solver.buildNumberListFromBitMask(availableNumbersMap[row][col])}
+                numbers={numbers}
               />
             ) : (
               <CellView
                 key={c}
+                style={{
+                  ...bordersStyle,
+                  backgroundColor: Sudoku.cellIsEmpty(startBoard)({ row, col }) ? "yellow" : "lightgrey",
+                }}
                 cell={Sudoku.cell(board)({ row, col })}
                 cellPos={{ row, col }}
-                backgroundColor={Sudoku.cellIsEmpty(startBoard)({ row, col }) ? undefined : "lightgrey"}
               />
             )
           })}
@@ -145,14 +145,15 @@ const BoxView: React.FC<BoxViewProps> = ({ startBoard, board, boxRow, boxCol, av
 interface CellViewProps {
   cell: SudokuModels.Cell
   cellPos: SudokuModels.CellPos
-  backgroundColor?: string
+  style: {}
 }
-const CellView: React.FC<CellViewProps> = ({ cell, backgroundColor }) => {
+
+const CellView: React.FC<CellViewProps> = ({ cell, style }) => {
   const classes = useStyles()
 
   const cellString = cell === SudokuModels.emptyCell ? "" : cell.toString()
   return (
-    <div style={{ backgroundColor }} className={classes.cell}>
+    <div style={style} className={classes.cell}>
       {cellString}
     </div>
   )
@@ -162,25 +163,27 @@ interface CellNumbersViewProps {
   boxWidth: number
   boxHeight: number
   numbers: number[]
+  style: {}
 }
-const CellNumbersView: React.FC<CellNumbersViewProps> = ({ boxWidth, boxHeight, numbers }) => {
+const CellNumbersView: React.FC<CellNumbersViewProps> = ({ boxWidth, boxHeight, numbers, style }) => {
   const classes = useStyles()
 
-  const cellBorderStyles = makeStyles({
+  const cellBorderStyles = {
     cell: {
+      display: "flex",
       width: 48 / boxWidth,
       height: 48 / boxHeight,
-      backgroundColor: numbersColors[Math.min(8, numbers.length)],
+      alignItems: "center",
+      justifyContent: "center",  
     },
-  })
-  const cellClasses = cellBorderStyles()
+  }
 
   return (
-    <div className={classes.numbersBox}>
+    <div style={style} className={classes.numbersBox}>
       {R.range(0, boxHeight).map((_, r) => (
         <div key={r} className={classes.numbersRow}>
           {R.range(0, boxWidth).map((_, c) => (
-            <div key={c} className={cellClasses.cell}>
+            <div key={c} style={cellBorderStyles.cell}>
               {numbers.find(n => n === r * boxWidth + c + 1) ? r * boxWidth + c + 1 : " "}
             </div>
           ))}
